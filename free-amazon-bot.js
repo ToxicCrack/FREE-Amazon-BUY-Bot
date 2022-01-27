@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name     Amazon-RefreshNoBot
-// @include  https://www.amazon.com/*
+// @include  https://www.amazon.de/*
 // @include  http://localhost:800*
 // @version      v2.0
 // @description  This aint bot, its RefreshNoBot
@@ -53,8 +53,8 @@
 //____ REQUIRED FLAGS : AMAZON ID & PRICE CUTOFF _________________________
 
 
-let PRODUCT_ARRAY = ["B08WM28PVH", "B096YM573B", "B096WM6JFS", "B096YMW2FS", "B09B1DGRH4"];
-const CUTOFF_ARRAY = [500, 500, 500, 500, 500]; // No quotes
+let PRODUCT_ARRAY = ["B08MKSYYZ4"];
+const CUTOFF_ARRAY = [1200]; // No quotes
 
 //____ REQUIRED FLAGS : TESTMODE OR BUY MODE _____________________________
 
@@ -69,7 +69,7 @@ const TESTMODE = "Yes" // This flag is unused. Will be implemented in next relea
 const PRODUCT_URL = document.URL
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
-const NUMERIC_REGEXP = /[-]{0,1}[\d]*[.]{0,1}[\d]+/g;
+const NUMERIC_REGEXP = /[-]{0,1}[\d]*[,]{0,1}[\d]+/g;
 
 const RETRY_COUNT = 1
 
@@ -86,7 +86,7 @@ if (document.getElementsByClassName("a-box a-alert a-alert-info a-spacing-base")
         var Oh_No_Its_Some_Captcha = new Audio("https://github.com/kkapuria3/BestBuy-GPU-Bot/blob/dev-v2.5-mem_leak_fix/resources/alert.mp3?raw=true");
         Oh_No_Its_Some_Captcha.play()
 
-        //"\n<img src=\"https://images-na.ssl-images-amazon.com/captcha/dddfleoy/Captcha_lkdgslujsl.jpg\">\n
+        //"\n<img src=\"https://images-na.ssl-images-amazon.de/captcha/dddfleoy/Captcha_lkdgslujsl.jpg\">\n
 
         var IMAGE_URL = document.getElementsByClassName("a-row a-text-center")[1].innerHTML.split('captcha/')[1]
         var FIRST_ELEMENT = IMAGE_URL.split('/')[0]
@@ -227,6 +227,7 @@ for (let i = 0; i < PRODUCT_ARRAY.length; i++) {
         // If your product URL has the AMAZON_PRODUCT_ID, we will run this logic. Simple.
 
         if (PRODUCT_URL.includes(AMAZON_PRODUCT_ID)) {
+            setTimeout(function() {
                 //____ BADGE UPDATE :  ______
                 var $badge = createFloatingBadge("Starting ..", "Init..");
                 document.body.appendChild($badge);
@@ -237,10 +238,12 @@ for (let i = 0; i < PRODUCT_ARRAY.length; i++) {
 
                 //____ Get Product Title :  ______
                 var Product_Title = document.getElementsByClassName("a-size-large product-title-word-break");
-                console.log(Product_Title[0].innerHTML)
+                if(Product_Title.length > 0) {
+                    console.log(Product_Title[0].innerHTML);
+                }
 
                 // If URL contains 'aod_redir', means we are checking for Extra Sellers, we will try to parse extra sellers in here
-                if (location.href.includes('aod_redir')) {
+                if (location.href.includes('olp-opf-redir')) {
                         //____ BADGE UPDATE :  ______
                         const $badge = createFloatingBadge('Extra Seller Offers Fetched | Checking offers ..', "Add to cart if price is below CUTOFF_PRICE ");
                         document.body.appendChild($badge);
@@ -252,20 +255,22 @@ for (let i = 0; i < PRODUCT_ARRAY.length; i++) {
 
                                 console.log('Open extra sellers')
                                 //console.log(New_Sellers)
-
+                                if(!document.getElementById("all-offers-display-scroller")) return;
 
                                 // We are directly parsing all the sellers ADD TO CART BUTTONS
-                                var Seller_Buttons = document.getElementsByClassName("a-button-input");
+                                var Seller_Buttons = document.getElementById("all-offers-display-scroller").getElementsByClassName("a-button-input");
 
                                 // We will loop over all the found buttons and then try to get ATC button where SELLER_PRICE is lower than CUTOFF_PRICE
                                 for (var i = 0; i < Seller_Buttons.length; i++) {
 
                                         // Getting Seller Button Data
-                                        var SELLER_BUTTON_DATA = Seller_Buttons.item(i)
+                                        var SELLER_BUTTON_DATA = Seller_Buttons.item(i);
 
                                         // Getting Seller Price from Outter HTML of button
-                                        var SELLER_PRICE = Seller_Buttons[i].outerHTML.match(NUMERIC_REGEXP).join('')
-                                        //console.log(SELLER_PRICE)
+                                        if(!Seller_Buttons[i].outerHTML.match(NUMERIC_REGEXP)) continue;
+                                        var SELLER_PRICE = Seller_Buttons[i].outerHTML.match(NUMERIC_REGEXP).join('').replace(',', '.');
+                                        console.log("Seller Price: "+SELLER_PRICE);
+
 
                                         // If SELLER_PRICE is less than CUTOFF_PRICE and SELLER_PRICE is Greater than 0 (to eliminate pseudo buttons)
                                         if (SELLER_PRICE < CUTOFF_PRICE && SELLER_PRICE > 0) {
@@ -275,13 +280,13 @@ for (let i = 0; i < PRODUCT_ARRAY.length; i++) {
 
 
                                                 setTimeout(function() {
-                                                        window.open("https://www.amazon.com/gp/cart/view.html", '_blank');
-                                                        window.close()
+                                                        window.open("https://www.amazon.de/gp/cart/view.html", '_blank');
+                                                        window.close();
 
                                                 }, 2000)
 
                                                 // BUY WILL BE TRIGGERED HERE
-                                                console.log('LOW Price: ' + SELLER_PRICE + ' | ButtonID : ' + SELLER_BUTTON_DATA + ' | Button Number : ' + i + ' | Button TimeStamp' + Date.now() + '\n')
+                                                console.log('LOW Price: ' + SELLER_PRICE + ' | ButtonID : ' + Seller_Buttons[i].outerHTML + ' | Button Number : ' + i + ' | Button TimeStamp' + Date.now() + '\n')
                                                 Seller_Buttons[i].click();
 
 
@@ -289,9 +294,9 @@ for (let i = 0; i < PRODUCT_ARRAY.length; i++) {
                                         } else if (SELLER_PRICE > CUTOFF_PRICE && SELLER_PRICE > 0 && SELLER_PRICE < (CUTOFF_PRICE + 2000)) {
 
                                                 //refresh
-                                                console.log('HIGH Price: ' + SELLER_PRICE + ' | ButtonID : ' + SELLER_BUTTON_DATA + ' | Button Number : ' + i + ' | Button TimeStamp' + Date.now() + '\n')
+                                                console.log('HIGH Price: ' + SELLER_PRICE + ' | ButtonID : ' + Seller_Buttons[i].outerHTML + ' | Button Number : ' + i + ' | Button TimeStamp' + Date.now() + '\n')
                                                 //console.log('Price is High')
-                                                var BADGE_SELLER_DETAILS = ' PRICE HIGHER | $:' + SELLER_PRICE + ' | BUTTON DATA : ' + SELLER_BUTTON_DATA + ' | BUTTON NUMBER : ' + i + ' | TIMESTAMP : ' + Date.now() + '◻️ ◻️ ◻️ ◻️ ◻️'
+                                                var BADGE_SELLER_DETAILS = ' PRICE HIGHER | $:' + SELLER_PRICE + ' | BUTTON NUMBER : ' + i + ' | TIMESTAMP : ' + Date.now() + '◻️ ◻️ ◻️ ◻️ ◻️'
                                                 PRICES_BADGE.push(BADGE_SELLER_DETAILS)
 
 
@@ -323,22 +328,22 @@ for (let i = 0; i < PRODUCT_ARRAY.length; i++) {
                         }, 4000)
 
                         setTimeout(function() {
-                                location.href = "https://www.amazon.com/dp/" + AMAZON_PRODUCT_ID + "/"
+                                location.href = "https://www.amazon.de/dp/" + AMAZON_PRODUCT_ID + "/"
                         }, 6000)
 
                         // MAIN PRODUCT PAGE OPERATIONS
                         // If price exists in MAIN BUY BOX or NEW BUY BOX then check if its less than CUTOFF or else go to sellers page
-                } else if (document.getElementById("price_inside_buybox") || document.getElementById("newBuyBoxPrice")) {
+                } else if ((document.getElementById("corePriceDisplay_desktop_feature_div") && document.getElementById("corePriceDisplay_desktop_feature_div").getElementsByClassName("a-price-whole")) || document.getElementById("newBuyBoxPrice")) {
 
-                        if (document.getElementById("price_inside_buybox")) {
-                                var Title_Price = document.getElementById("price_inside_buybox").innerHTML;
+                        if (document.getElementById("corePriceDisplay_desktop_feature_div").getElementsByClassName("a-price-whole")) {
+                                var Title_Price = document.getElementById("corePriceDisplay_desktop_feature_div").getElementsByClassName("a-price-whole")[0].innerHTML;
                         }
                         if (document.getElementById("newBuyBoxPrice")) {
                                 Title_Price = document.getElementById("newBuyBoxPrice").innerHTML;
                         }
 
                         // Parse the Title Price
-                        Title_Price = Title_Price.match(NUMERIC_REGEXP).join('')
+                        Title_Price = Title_Price.replace('.', '').match(NUMERIC_REGEXP).join('')
 
                         //console.log(Title_Price)
                         var Title_Price1 = 'Title Price : ' + Title_Price
@@ -361,7 +366,8 @@ for (let i = 0; i < PRODUCT_ARRAY.length; i++) {
 
                         } else {
                                 setTimeout(function() {
-                                        window.open("https://www.amazon.com/gp/offer-listing/" + AMAZON_PRODUCT_ID + "/ref=dp_olp_unknown_mbc", '_blank');
+                                    //window.location.href = "https://www.amazon.de/gp/offer-listing/" + AMAZON_PRODUCT_ID + "/ref=dp_olp_unknown_mbc";
+                                        window.open("https://www.amazon.de/gp/offer-listing/" + AMAZON_PRODUCT_ID + "/ref=dp_olp_unknown_mbc", '_blank');
                                         window.close()
 
                                 }, 3000)
@@ -377,7 +383,7 @@ for (let i = 0; i < PRODUCT_ARRAY.length; i++) {
                                 console.log('timeout1');
 
 
-                                location.href = "https://www.amazon.com/gp/offer-listing/" + AMAZON_PRODUCT_ID + "/ref=dp_olp_unknown_mbc";
+                                location.href = "https://www.amazon.de/gp/offer-listing/" + AMAZON_PRODUCT_ID + "/ref=dp_olp_unknown_mbc";
                         }, 3000)
 
 
@@ -395,7 +401,7 @@ for (let i = 0; i < PRODUCT_ARRAY.length; i++) {
 
                                 setTimeout(function() {
                                         console.log('timeout2');
-                                        location.href = "https://www.amazon.com/gp/offer-listing/" + AMAZON_PRODUCT_ID + "/"
+                                        location.href = "https://www.amazon.de/gp/offer-listing/" + AMAZON_PRODUCT_ID + "/"
                                 }, 2000)
 
                                 var Message = document.getElementsByClassName("a-text-bold aod-no-offer-normal-font")[0].innerHTML;
@@ -434,7 +440,7 @@ for (let i = 0; i < PRODUCT_ARRAY.length; i++) {
 
 
                 }
-
+            }, 1000); //Product Page
 
         }
 
@@ -470,12 +476,12 @@ if (document.URL.includes('http://localhost:8000/')) {
 
 //                        MAIN CODE : DOG PAGES
 //________________________________________________________________________
-else if (document.getElementById('d').alt.includes('Dogs')) {
+else if (document.getElementById('d') && document.getElementById('d').alt.includes('Dogs')) {
 
         console.log('Dogs of Amazon')
         setTimeout(function() {
 
-                location.href = 'https://www.amazon.com/gp/cart/view.html'
+                location.href = 'https://www.amazon.de/gp/cart/view.html'
 
         }, 10000)
 
@@ -505,14 +511,14 @@ else if (document.URL.includes('/gp/cart/')) {
 
                 if (document.getElementsByClassName("a-size-medium a-color-base sc-price sc-white-space-nowrap").length > 0) {
 
-                        location.href = 'https://www.amazon.com/gp/buy/spc/handlers/display.html?hasWorkingJavascript=1'
+                        location.href = 'https://www.amazon.de/gp/buy/spc/handlers/display.html?hasWorkingJavascript=1'
 
                 } else if (document.getElementById("g").innerHTML.includes('ref=cs_503_link') == true) {
 
 
                         console.log('Amazon 503 Cart error. Lets try cart again in 5 seconds')
                         setTimeout(function() {
-                                location.href = 'https://www.amazon.com/gp/cart/view.html'
+                                location.href = 'https://www.amazon.de/gp/cart/view.html'
                         }, 5000)
 
 

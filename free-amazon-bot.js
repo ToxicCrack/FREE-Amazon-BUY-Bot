@@ -242,7 +242,7 @@ for (let i = 0; i < PRODUCT_ARRAY.length; i++) {
                     console.log(Product_Title[0].innerHTML);
                 }
 
-                // If URL contains 'aod_redir', means we are checking for Extra Sellers, we will try to parse extra sellers in here
+                // If URL contains 'olp-opf-redir', means we are checking for Extra Sellers, we will try to parse extra sellers in here
                 if (location.href.includes('olp-opf-redir')) {
                         //____ BADGE UPDATE :  ______
                         const $badge = createFloatingBadge('Extra Seller Offers Fetched | Checking offers ..', "Add to cart if price is below CUTOFF_PRICE ");
@@ -296,7 +296,7 @@ for (let i = 0; i < PRODUCT_ARRAY.length; i++) {
                                                 //refresh
                                                 console.log('HIGH Price: ' + SELLER_PRICE + ' | ButtonID : ' + Seller_Buttons[i].outerHTML + ' | Button Number : ' + i + ' | Button TimeStamp' + Date.now() + '\n')
                                                 //console.log('Price is High')
-                                                var BADGE_SELLER_DETAILS = ' PRICE HIGHER | $:' + SELLER_PRICE + ' | BUTTON NUMBER : ' + i + ' | TIMESTAMP : ' + Date.now() + '◻️ ◻️ ◻️ ◻️ ◻️'
+                                                var BADGE_SELLER_DETAILS = ' PRICE HIGHER | $:' + SELLER_PRICE + ' | BUTTON NUMBER : ' + i + ' | TIMESTAMP : ' + Date.now() + '◻️ ◻️ ◻️ ◻️ ◻️\n'
                                                 PRICES_BADGE.push(BADGE_SELLER_DETAILS)
 
 
@@ -328,14 +328,16 @@ for (let i = 0; i < PRODUCT_ARRAY.length; i++) {
                         }, 4000)
 
                         setTimeout(function() {
-                                location.href = "https://www.amazon.de/dp/" + AMAZON_PRODUCT_ID + "/"
+                                //location.href = "https://www.amazon.de/dp/" + AMAZON_PRODUCT_ID + "/"
+                            //we are always on extra sellers page, so refresh is sufficient
+                            location.reload();
                         }, 6000)
 
                         // MAIN PRODUCT PAGE OPERATIONS
                         // If price exists in MAIN BUY BOX or NEW BUY BOX then check if its less than CUTOFF or else go to sellers page
                 } else if ((document.getElementById("corePriceDisplay_desktop_feature_div") && document.getElementById("corePriceDisplay_desktop_feature_div").getElementsByClassName("a-price-whole")) || document.getElementById("newBuyBoxPrice")) {
 
-                        if (document.getElementById("corePriceDisplay_desktop_feature_div").getElementsByClassName("a-price-whole")) {
+                        /*if (document.getElementById("corePriceDisplay_desktop_feature_div").getElementsByClassName("a-price-whole")) {
                                 var Title_Price = document.getElementById("corePriceDisplay_desktop_feature_div").getElementsByClassName("a-price-whole")[0].innerHTML;
                         }
                         if (document.getElementById("newBuyBoxPrice")) {
@@ -364,14 +366,15 @@ for (let i = 0; i < PRODUCT_ARRAY.length; i++) {
                                 }, 1000)
 
 
-                        } else {
+                        } else {*/
+                    //Redirect directly to extra seller listings, because amazon's price is on top
                                 setTimeout(function() {
                                     //window.location.href = "https://www.amazon.de/gp/offer-listing/" + AMAZON_PRODUCT_ID + "/ref=dp_olp_unknown_mbc";
                                         window.open("https://www.amazon.de/gp/offer-listing/" + AMAZON_PRODUCT_ID + "/ref=dp_olp_unknown_mbc", '_blank');
                                         window.close()
 
                                 }, 3000)
-                        }
+                        //}
 
 
                 } else {

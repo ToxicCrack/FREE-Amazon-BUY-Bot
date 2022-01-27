@@ -419,7 +419,8 @@ for (let i = 0; i < PRODUCT_ARRAY.length; i++) {
 
                 }
                 // When no title price is found
-                if (document.getElementById("outOfStock") && document.getElementsByClassName("aod-message-component")) {
+                //if (document.getElementById("outOfStock") && document.getElementsByClassName("aod-message-component")) {
+                if(document.getElementById("percolate-ui-lpo_div") && document.getElementById("percolate-ui-lpo_div").innerHTML != ""){
 
                         const $badge = createFloatingBadge('Title Price Empty', "Refreshing...");
                         document.body.appendChild($badge);
